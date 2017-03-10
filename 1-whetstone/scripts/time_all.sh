@@ -1,20 +1,29 @@
 #!/bin/bash
-DIR=$(dirname $(greadlink -f "$0"))
-BIN=$(dirname $DIR/../bin/)
-RES=$(dirname $DIR/../results/)
+ROOT=$(dirname $(readlink -f "$0"))
+BIN=$(readlink -f "$ROOT/../bin/")
+RES=$(readlink -f "$ROOT/../results/ex1")
 
-echo $DIR $BIN $RES
+trap ctrl_c INT
+
+function ctrl_c() {
+	pkill -P $$
+}
 
 
+files=$(ls $BIN)
 
-#cd $BIN
-#files=$(ls)
+LOOPS="100000 300000 500000"
 
-#LOOPS="100000 300000 500000"
+OLDPATH=$PATH
+PATH=$BIN:$PATH
 
-#cd $RES
-#for l in $LOOPS; do
-    #for exe in $files; do
-        #$(/usr/bin/time -lp "$exe" $l)>"$exe-$l.txt"
-    #done
-#done
+cd $RES
+for l in $LOOPS; do
+    for exe in $files; do
+	OUTFILE=$RES/$exe-$l.txt
+	{ time -p "$exe" "$l" & } 2> $OUTFILE
+    done
+done
+
+PATH=$OLDPATH
+wait
